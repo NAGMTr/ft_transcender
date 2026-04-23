@@ -1,0 +1,60 @@
+name: Regras de Submissão de PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Checa regras da base branch
+        run: |
+          BASE="${{ github.base_ref }}"
+          HEAD="${{ github.head_ref }}"
+
+          echo "Base: $BASE"
+          echo "Head: $HEAD"
+
+          if [[ "$HEAD" =~ ^(feat|fix)/.* ]]; then
+            if [[ "$BASE" != "dev" ]]; then
+              echo "❌ Branches feat/fix devem ir para 'dev'"
+              exit 1
+            fi
+          fi
+
+          if [[ "$HEAD" == "dev" ]]; then
+            if [[ "$BASE" != "main" ]]; then
+              echo "❌ Apenas 'dev' pode ir para 'main'"
+              exit 1
+            fi
+          fi
+
+          echo "✅ Base branch OK"
+
+      - name: Valida nomes de branch
+        run: |
+          HEAD="${{ github.head_ref }}"
+
+          if [[ ! "$HEAD" =~ ^(feat|fix)/[a-z0-9._-]+$ && "$HEAD" != "dev" ]]; then
+            echo "❌ Nome da branch inválido"
+            echo "Use: feat/titulo, fix/titulo, etc."
+            exit 1
+          fi
+
+          echo "✅ Nome da branch OK"
+      - name: Valida mensagem de commits
+        run: |
+          COMMITS=$(git log --format=%s origin/${{ github.base_ref }}..HEAD)
+
+          for msg in $COMMITS; do
+            if [[ ! "$msg" =~ ^(feat|fix):\ .+ ]]; then
+              echo "❌ Commit inválido: $msg"
+              exit 1
+            fi
+          done
+
+          echo "✅ Commits OK"
