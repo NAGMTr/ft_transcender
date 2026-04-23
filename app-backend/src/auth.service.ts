@@ -204,13 +204,11 @@ export class AuthService {
     }
 
     const contentType = response.headers.get('content-type') ?? '';
-    const payload =
-      contentType.includes('application/json') ||
-      contentType.includes('text/json')
-        ? ((await response.json()) as Record<string, unknown>)
-        : Object.fromEntries(
-            new URLSearchParams(await response.text()).entries(),
-          );
+    const payload = contentType.includes('application/json')
+      ? ((await response.json()) as Record<string, unknown>)
+      : Object.fromEntries(
+          new URLSearchParams(await response.text()).entries(),
+        );
 
     const accessToken = payload.access_token;
     if (typeof accessToken !== 'string' || !accessToken) {
@@ -228,7 +226,7 @@ export class AuthService {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: 'application/json',
-        'User-Agent': 'ft_transcender-oauth-client',
+        'User-Agent': 'ft_transcendence-oauth-client',
       },
     });
 
@@ -268,10 +266,15 @@ export class AuthService {
       login: profile.login,
       name: profile.displayname,
       email: profile.email,
-      avatarUrl:
-        typeof profile.image === 'object' && profile.image
-          ? (profile.image as { link?: string }).link
-          : undefined,
+      avatarUrl: this.get42AvatarUrl(profile),
     };
+  }
+
+  private get42AvatarUrl(profile: Record<string, unknown>) {
+    if (typeof profile.image !== 'object' || !profile.image) {
+      return undefined;
+    }
+
+    return (profile.image as { link?: string }).link;
   }
 }
