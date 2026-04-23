@@ -89,6 +89,47 @@ describe('AuthService', () => {
     ).rejects.toThrow(UnauthorizedException);
   });
 
+  it('should reject OAuth callback when state is reused', async () => {
+    process.env.OAUTH_GITHUB_CLIENT_ID = 'github-client-id';
+    process.env.OAUTH_GITHUB_CLIENT_SECRET = 'github-client-secret';
+    process.env.OAUTH_GITHUB_REDIRECT_URI = 'http://localhost:3000/callback';
+
+    const authorizationUrl = authService.getAuthorizationUrl('github');
+    const state = new URL(authorizationUrl).searchParams.get('state');
+
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({ access_token: 'oauth-access-token' }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            id: 42,
+            login: 'octocat',
+            name: 'Mona Octocat',
+            email: 'mona@github.com',
+            avatar_url: 'https://avatars.githubusercontent.com/u/1',
+          }),
+      } as Response);
+
+    await authService.authenticate(
+      'github',
+      'authorization-code',
+      state ?? undefined,
+    );
+    await expect(
+      authService.authenticate(
+        'github',
+        'authorization-code',
+        state ?? undefined,
+      ),
+    ).rejects.toThrow(UnauthorizedException);
+  });
+
   it('should throw when provider is not configured', () => {
     expect(() => authService.getAuthorizationUrl('google')).toThrow(
       BadRequestException,

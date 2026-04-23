@@ -59,6 +59,8 @@ const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 
 @Injectable()
 export class AuthService {
+  private readonly usedStates = new Map<string, number>();
+
   getAvailableProviders(): Array<{ id: ProviderId; label: string }> {
     return PROVIDERS.filter((provider) => this.isConfigured(provider.id)).map(
       ({ id, label }) => ({
@@ -156,6 +158,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid OAuth state.');
     }
 
+    this.pruneUsedStates();
+    if (this.usedStates.has(state)) {
+      throw new UnauthorizedException('OAuth state has already been used.');
+    }
+
     const expectedSignature = this.sign(encodedPayload, secret);
     const signatureMatch = timingSafeEqual(
       Buffer.from(providedSignature),
@@ -174,6 +181,8 @@ export class AuthService {
     if (payload.provider !== provider || isExpired) {
       throw new UnauthorizedException('OAuth state expired or invalid.');
     }
+
+    this.usedStates.set(state, Date.now() + OAUTH_STATE_TTL_MS);
   }
 
   private sign(payload: string, secret: string): string {
@@ -264,7 +273,7 @@ export class AuthService {
     return {
       id: profile.id,
       login: profile.login,
-      name: profile.displayname,
+      name: profile.displayname ?? profile.usual_full_name ?? profile.login,
       email: profile.email,
       avatarUrl: this.get42AvatarUrl(profile),
     };
@@ -276,5 +285,14 @@ export class AuthService {
     }
 
     return (profile.image as { link?: string }).link;
+  }
+
+  private pruneUsedStates() {
+    const now = Date.now();
+    for (const [state, expiresAt] of this.usedStates.entries()) {
+      if (expiresAt <= now) {
+        this.usedStates.delete(state);
+      }
+    }
   }
 }
