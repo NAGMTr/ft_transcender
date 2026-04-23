@@ -1,11 +1,15 @@
-import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
+  const oauthProviders = [
+    { id: 'google', label: 'Google' },
+    { id: 'github', label: 'GitHub' },
+    { id: '42', label: '42' },
+  ]
 
   return (
     <>
@@ -16,17 +20,22 @@ function App() {
           <img src={viteLogo} className="vite" alt="Vite logo" />
         </div>
         <div>
-          <h1>Get started</h1>
+          <h1>Remote Authentication</h1>
           <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+            Sign in with OAuth 2.0 providers.
           </p>
         </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+        <div className="oauth-buttons">
+          {oauthProviders.map((provider) => (
+            <a
+              key={provider.id}
+              className="counter"
+              href={`${apiBaseUrl}/auth/oauth/${provider.id}`}
+            >
+              Continue with {provider.label}
+            </a>
+          ))}
+        </div>
       </section>
 
       <div className="ticks"></div>

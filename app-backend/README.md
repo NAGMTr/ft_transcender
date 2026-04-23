@@ -57,6 +57,20 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## OAuth 2.0 providers
+
+Configure each provider with environment variables:
+
+- `OAUTH_GOOGLE_CLIENT_ID`, `OAUTH_GOOGLE_CLIENT_SECRET`, `OAUTH_GOOGLE_REDIRECT_URI`
+- `OAUTH_GITHUB_CLIENT_ID`, `OAUTH_GITHUB_CLIENT_SECRET`, `OAUTH_GITHUB_REDIRECT_URI`
+- `OAUTH_42_CLIENT_ID`, `OAUTH_42_CLIENT_SECRET`, `OAUTH_42_REDIRECT_URI`
+
+Available endpoints:
+
+- `GET /auth/providers`
+- `GET /auth/oauth/:provider`
+- `GET /auth/oauth/:provider/callback`
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
