@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Checa regras da base branch
         run: |
           BASE="${{ github.base_ref }}"
