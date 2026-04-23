@@ -2,15 +2,13 @@ name: Regras de Submissão de PR
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, edited]
 
 jobs:
   validate-pr:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
       - name: Checa regras da base branch
         run: |
           BASE="${{ github.base_ref }}"
@@ -46,15 +44,37 @@ jobs:
           fi
 
           echo "✅ Nome da branch OK"
+
       - name: Valida mensagem de commits
-        run: |
-          COMMITS=$(git log --format=%s origin/${{ github.base_ref }}..HEAD)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pull_number = context.payload.pull_request.number;
+            const pattern = /^(feat|fix):\s.+/;
 
-          for msg in $COMMITS; do
-            if [[ ! "$msg" =~ ^(feat|fix):\ .+ ]]; then
-              echo "❌ Commit inválido: $msg"
-              exit 1
-            fi
-          done
+            const commits = await github.paginate(
+              github.rest.pulls.listCommits,
+              {
+                owner,
+                repo,
+                pull_number,
+                per_page: 100,
+              }
+            );
 
-          echo "✅ Commits OK"
+            if (commits.length === 0) {
+              core.setFailed("❌ PR sem commits para validar");
+              return;
+            }
+
+            for (const commit of commits) {
+              const msg = (commit.commit?.message || "").split("\n")[0].trim();
+              if (!pattern.test(msg)) {
+                core.setFailed(`❌ Commit inválido: ${msg}`);
+                return;
+              }
+            }
+
+            core.info("✅ Commits OK");
