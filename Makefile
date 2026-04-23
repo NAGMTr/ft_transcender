@@ -13,7 +13,7 @@ down:
 	$(COMPOSE) down
 
 shell-db:
-	$(COMPOSE) exec db psql -U postgres plataforma
+	$(COMPOSE) exec postgres psql -U postgres transcendence_db
 
 clean: down
 	docker system prune -af

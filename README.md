@@ -14,3 +14,14 @@ rodar o back no modo desenvolvimento:
 cd app-backend
 npm install
 npm run start:dev
+
+
+# 1. Correr a migration
+npm run migration:run
+
+# 2. Popular a tabela
+npm run seed:run
+
+NOTA: Qualquer alteracao da estrutura da bd deve ser definida 
+atraves da migration; E qualquer valor que seja parte da regra
+de negocio, deve ser definida atraves de seeds

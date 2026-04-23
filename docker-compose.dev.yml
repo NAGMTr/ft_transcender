@@ -5,8 +5,8 @@ services:
     container_name: postgree
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: plataforma
+      POSTGRES_PASSWORD: final
+      POSTGRES_DB: transcendence_db
     ports:
       - "5432:5432"
     volumes:
