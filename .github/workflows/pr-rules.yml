@@ -1,0 +1,80 @@
+name: Regras de Submissão de PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checa regras da base branch
+        run: |
+          BASE="${{ github.base_ref }}"
+          HEAD="${{ github.head_ref }}"
+
+          echo "Base: $BASE"
+          echo "Head: $HEAD"
+
+          if [[ "$HEAD" =~ ^(feat|fix)/.* ]]; then
+            if [[ "$BASE" != "dev" ]]; then
+              echo "❌ Branches feat/fix devem ir para 'dev'"
+              exit 1
+            fi
+          fi
+
+          if [[ "$HEAD" == "dev" ]]; then
+            if [[ "$BASE" != "main" ]]; then
+              echo "❌ Apenas 'dev' pode ir para 'main'"
+              exit 1
+            fi
+          fi
+
+          echo "✅ Base branch OK"
+
+      - name: Valida nomes de branch
+        run: |
+          HEAD="${{ github.head_ref }}"
+
+          if [[ ! "$HEAD" =~ ^(feat|fix)/[a-z0-9._-]+$ && "$HEAD" != "dev" ]]; then
+            echo "❌ Nome da branch inválido"
+            echo "Use: feat/titulo, fix/titulo, etc."
+            exit 1
+          fi
+
+          echo "✅ Nome da branch OK"
+
+      - name: Valida mensagem de commits
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pull_number = context.payload.pull_request.number;
+            const pattern = /^(feat|fix):\s.+/;
+
+            const commits = await github.paginate(
+              github.rest.pulls.listCommits,
+              {
+                owner,
+                repo,
+                pull_number,
+                per_page: 100,
+              }
+            );
+
+            if (commits.length === 0) {
+              core.setFailed("❌ PR sem commits para validar");
+              return;
+            }
+
+            for (const commit of commits) {
+              const msg = (commit.commit?.message || "").split("\n")[0].trim();
+              if (!pattern.test(msg)) {
+                core.setFailed(`❌ Commit inválido: ${msg}`);
+                return;
+              }
+            }
+
+            core.info("✅ Commits OK");
