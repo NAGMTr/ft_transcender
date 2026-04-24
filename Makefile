@@ -1,10 +1,12 @@
 COMPOSE = docker compose -f docker-compose.dev.yml
+PROJECT_ROOT = $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 DATA_DIR = /home/$(USER)/data
-FRONT_DIR = ./app-frontend
-BACK_DIR = ./app-backend
-LOG_DIR = ./logs
-BACK_PID_FILE = .backend.pid
-FRONT_PID_FILE = .frontend.pid
+FRONT_DIR = $(PROJECT_ROOT)/app-frontend
+BACK_DIR = $(PROJECT_ROOT)/app-backend
+LOG_DIR = $(PROJECT_ROOT)/logs
+PID_DIR = $(PROJECT_ROOT)/.pids
+BACK_PID_FILE = $(PID_DIR)/backend.pid
+FRONT_PID_FILE = $(PID_DIR)/frontend.pid
 
 all: help
 
@@ -27,13 +29,21 @@ up:
 	mkdir -p $(DATA_DIR)/postgresql
 	$(COMPOSE) up -d
 
+wait-db: up
+	@echo "Waiting for PostgreSQL to be ready..."
+	@until $(COMPOSE) exec -T postgres pg_isready -U $${DB_USER:-postgres} -d $${DB_NAME:-transcendence_db} >/dev/null 2>&1; do \
+		printf "."; \
+		sleep 1; \
+	done; \
+	echo " ready"
+
 down:
 	$(COMPOSE) down
 
 shell-db:
 	$(COMPOSE) exec postgres psql -U postgres transcendence_db
 
-migrate:
+migrate: wait-db
 	@cd $(BACK_DIR) && { [ -d node_modules ] || npm install; }
 	@cd $(BACK_DIR) && npm run migration:run
 
@@ -44,15 +54,16 @@ seed:
 db-init: migrate seed
 	@echo "Database initialized (migrations + seeds)."
 
-dev: up
+dev: wait-db
 	@echo "Starting backend and frontend..."
 	@mkdir -p $(LOG_DIR)
+	@mkdir -p $(PID_DIR)
 	@if [ -f $(BACK_PID_FILE) ]; then kill $$(cat $(BACK_PID_FILE)) 2>/dev/null || true; rm -f $(BACK_PID_FILE); fi
 	@if [ -f $(FRONT_PID_FILE) ]; then kill $$(cat $(FRONT_PID_FILE)) 2>/dev/null || true; rm -f $(FRONT_PID_FILE); fi
 	@cd $(BACK_DIR) && { [ -d node_modules ] || npm install; }
-	@(cd $(BACK_DIR) && npm run start:dev > ../$(LOG_DIR)/backend.log 2>&1) & echo $$! > $(BACK_PID_FILE)
+	@(cd $(BACK_DIR) && npm run start:dev > $(LOG_DIR)/backend.log 2>&1) & echo $$! > $(BACK_PID_FILE)
 	@cd $(FRONT_DIR) && { [ -d node_modules ] || npm install; }
-	@(cd $(FRONT_DIR) && npm run dev -- --port 5173 --strictPort > ../$(LOG_DIR)/frontend.log 2>&1) & echo $$! > $(FRONT_PID_FILE)
+	@(cd $(FRONT_DIR) && npm run dev -- --port 5173 --strictPort > $(LOG_DIR)/frontend.log 2>&1) & echo $$! > $(FRONT_PID_FILE)
 	@echo "Backend log: $(LOG_DIR)/backend.log"
 	@echo "Frontend log: $(LOG_DIR)/frontend.log"
 	@echo "Frontend running at: http://localhost:5173/"
@@ -77,4 +88,4 @@ fclean: dev-stop
 
 re: fclean dev
 
-.PHONY: all help up down shell-db migrate seed db-init dev dev-status dev-stop clean fclean re
+.PHONY: all help up down wait-db shell-db migrate seed db-init dev dev-status dev-stop clean fclean re
