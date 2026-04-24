@@ -4,13 +4,15 @@ services:
     image: postgres:16-alpine
     container_name: postgree
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: final
-      POSTGRES_DB: transcendence_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    secrets:
+      - db_password
 volumes:
   postgres_data:
     driver: local
@@ -18,3 +20,7 @@ volumes:
       type: none
       o: bind
       device: /home/${USER}/data/postgresql
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
