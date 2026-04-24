@@ -1,2 +1,5 @@
 secrets/
 .env
+logs/
+.backend.pid
+.frontend.pid
