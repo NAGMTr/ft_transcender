@@ -1,22 +1,43 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import  Home  from './pages/Home';
-import  Profile  from './pages/Profile';
-import NotFound from '/pages/NotFound';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Profile from './pages/Profile';
 
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-black">
-        <Routes>
-          <Route path="/" element={<Home/>} />
-          <Route path="/users/:id" element={<Profile/>} />
-          <Route path="*" element={<NotFound/>} />
-        </Routes>
+      {/* O container principal sempre preto */}
+      <div className="min-h-screen bg-black flex flex-col">
+        
+        {/* A Navbar aparece em todas as páginas */}
+        <Navbar />
+
+        {/* O conteúdo das páginas muda aqui dentro */}
+        <div className="flex-1">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/users/:id" element={<Profile />} />
+            
+            {/* Rota Fallback */}
+            <Route path="*" element={
+              <div className="h-full flex items-center justify-center p-20">
+                <h1 className="text-[#00FF9D] font-black italic text-2xl">404 // ROTA NÃO ENCONTRADA</h1>
+              </div>
+            } />
+          </Routes>
+        </div>
+
+        {/* Footer Opcional sutil */}
+        <footer className="p-8 border-t border-zinc-900 text-center">
+          <p className="text-zinc-700 text-[10px] font-bold tracking-[0.3em] uppercase">
+            ExamBet © 2026 // 42 Luanda Terminal
+          </p>
+        </footer>
+
       </div>
     </BrowserRouter>
-  )
+  );
 }
-
 // import { useEffect, useState } from 'react'
 // import './App.css'
 

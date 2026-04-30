@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ExamRankModule } from './modules/examrankModule/examrank.module';
-
+import { UserModule } from './modules/user/user.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,10 +21,11 @@ import { ExamRankModule } from './modules/examrankModule/examrank.module';
         database: config.get<string>('DB_NAME'),
         entities: [__dirname + '/modules/**/*.entity{.ts,.js}'],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
-        synchronize: false,
+        synchronize: true,
       }),
     }),
     ExamRankModule,
+    UserModule,
   ],
 })
 export class AppModule {}
