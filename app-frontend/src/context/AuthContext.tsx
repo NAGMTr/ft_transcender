@@ -30,7 +30,7 @@ export function AuthProvider({children}:{children: ReactNode}){
     }
 
     function logout(){
-        console.log("Clicou em sair");
+        
         localStorage.removeItem('access_token');
         setToken(null);
         setUser(null);

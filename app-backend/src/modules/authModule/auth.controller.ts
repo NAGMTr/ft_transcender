@@ -15,19 +15,13 @@ constructor(private authService: AuthService, private configService:ConfigServic
 @Get('google')
 @UseGuards(GoogleAuthGuard)
 async googleAuth(){
-    console.log("executa /auth/google");
 }
 
 @Get('google/callback')
 @UseGuards(GoogleAuthGuard)
 async googleAuthCallBack(@Req() req, @Res() res:Response){
     
-    console.log("executa /auth/google/callback");
-    
     const { access_token } = await this.authService.googleLogin(req.user);
-
-    console.log("TOKEN: ");
-    console.log(access_token);
 
     const frontendUrl = this.configService.get('FRONTEND_URL');
 
