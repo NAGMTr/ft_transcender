@@ -24,18 +24,21 @@ export default function Navbar() {
           Jogos
         </Link>
         <Link
-          to={profile ? `/users/${profile.username}` : "/"}
-          className={`transition-colors ${profile && isActive(`/users/${profile.username}`)
-              ? 'text-[#00FF9D]'
-              : 'text-zinc-500 hover:text-white'
-            }`}
-        >
-          {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="w-8 h-8 rounded-full"/>
-          ) : null}
+  to={profile ? `/users/${profile.username}` : "/"}
+  className="flex items-center gap-2 text-white"
+>
+  {profile?.avatar_url && (
+    <img
+      src={profile.avatar_url}
+      alt=""
+      className="w-8 h-8 rounded-full"
+    />
+  )}
 
-          {profile?.username}
-        </Link>
+  <span className="text-sm font-semibold text-white">
+    {profile?.username}
+  </span>
+</Link>
       </div>
     </nav>
   )
