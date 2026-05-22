@@ -22,6 +22,9 @@ help:
 	@echo "  make down       - Stop database container"
 	@echo "  make shell-db   - Open psql shell in postgres container"
 	@echo "  make clean      - Stop containers and prune docker resources"
+	@echo "  make clean-all-except-postgres - Stop containers, volumes and images except postgres"
+	@echo "  make clean-keep-pulls - Alias for clean-all-except-postgres"
+	@echo "  make clean-volume-keep-image - Stop containers and remove the project volume only"
 	@echo "  make fclean     - clean + remove volumes + data dir"
 	@echo "  make re         - Full reset and start"
 
@@ -98,10 +101,16 @@ fclean-local: down
 	$(COMPOSE) down --volumes
 	sudo rm -rf $(DATA_DIR)
 
+# Remove containers and the project volume, but keep pulled images like postgres:16-alpine
+clean-volume-keep-image: down
+	$(COMPOSE) down --volumes
+	@sudo rm -rf $(DATA_DIR)/postgresql
+
 # Remove containers/volumes do projeto e APAGA todas as imagens do PC, EXCETO o postgres
 clean-all-except-postgres: down
 	@echo "Limpando containers e volumes..."
 	$(COMPOSE) down --volumes
+	@sudo rm -rf $(DATA_DIR)/postgresql
 	@echo "Removendo todas as imagens do sistema, exceto postgres:16-alpine..."
 	@IMAGES=$$(docker images --format "{{.Repository}}:{{.Tag}}" | grep -v "postgres:16-alpine"); \
 	if [ -n "$$IMAGES" ]; then \
@@ -110,4 +119,6 @@ clean-all-except-postgres: down
 	@# Remove também imagens sem nome (<none>) que sobram de builds antigos
 	@docker image prune -f
 
-.PHONY: all help up down wait-db shell-db migrate seed db-init dev dev-status dev-stop clean fclean re clean-containers fclean-local clean-all-except-postgres
+.PHONY: all help up down wait-db shell-db migrate seed db-init dev dev-status dev-stop clean fclean re clean-containers fclean-local clean-all-except-postgres clean-keep-pulls clean-volume-keep-image
+
+clean-keep-pulls: clean-all-except-postgres

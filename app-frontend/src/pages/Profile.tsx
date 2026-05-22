@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams} from "react-router-dom";
-import ProfileCard from "../components/ProfileCard";
+import { useParams } from "react-router-dom";
+import FriendsList from "../components/FriendsList.tsx";
+import ProfileCard from "../components/ProfileCard.tsx";
 
 interface UserProfile {
     id: number;
@@ -11,52 +12,67 @@ interface UserProfile {
     created_at: string;
 }
 
-export default function Profile () {
+export default function Profile() {
     const { user } = useParams();
-    const [profile, setProfile] = useState<UserProfile | null> (null);
+    const [profile, setProfile] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         fetch(`http://localhost:3000/users/${user}`)
-        .then((res) => {
-            if (!res.ok)
-                throw new Error ("user Não encontrado")
-           return res.json()
-            }
-        )
-        .then((data) => {
-            setProfile(data);
-        })
-        .catch((err) => {
-            console.log(err);
-            setIsLoading(false);
-        })   
+            .then((res) => {
+                if (!res.ok) throw new Error("User Não encontrado");
+                return res.json();
+            })
+            .then((data) => {
+                setProfile(data);
+            })
+            .catch((err) => {
+                console.log("Erro ao procurar utilizador:", err);
+                setProfile(null); // Garante que o estado fica explicitamente nulo em caso de erro
+            })
             .finally(() => {
                 setIsLoading(false);
-        });
-            
+            });
     }, [user]);
+
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center text-zinc-500 uppercase">
-                Carregando Daidos do servidor....
+            <div className="min-h-screen bg-black flex items-center justify-center text-zinc-500 uppercase tracking-widest">
+                Carregando Dados do servidor....
             </div>
-        ) 
+        );
     }
+
     if (!profile) {
         return (
-            <div className="flex h-screen items-center justify-center text-[#ff0000] italic">
-                <h1 className="text-2xl font-black">USUÁRIO NÃO ENCONTRADO</h1>
+            <div className="flex h-screen bg-black items-center justify-center text-[#FF0000] italic">
+
+                <h1 className="text-2xl font-black uppercase tracking-wider">
+                    USUÁRIO NÃO ENCONTRADO
+                </h1>
+
             </div>
-        )
+        );
     }
-   
+
     return (
-        <div className="min-h-screen bg-black text-white px-6 py-6 flex flex-col items-center">
-           <div className="w-full max-w-4xl bg-zinc-900 border border-zinc-800 rounded-xl p-8 relative overflow-hidden" >
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-[#00FF9D]" />
-                <ProfileCard profile={profile}/>
-           </div>
+        <div className="p-8 bg-[#121212] min-h-screen text-white flex justify-center items-start">
+
+            <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                {/* CARTÃO DE PERFIL: COMPONENTE QUE FALTAVA VISUALMENTE */}
+
+                <ProfileCard profile={profile} />
+                {/* COLUNA DOS AMIGOS */}
+
+                <div className="md:col-span-2">
+
+                    <FriendsList />
+
+                </div>
+
+            </div>
+
         </div>
     );
 }
