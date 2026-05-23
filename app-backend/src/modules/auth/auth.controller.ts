@@ -4,13 +4,13 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
-import { AdvancedConsoleLogger } from 'typeorm';
+import { UserService } from '../user/user.service';
 
 
 @Controller('auth')
 export class AuthController{
 
-constructor(private authService: AuthService, private configService:ConfigService){}
+constructor(private authService: AuthService, private configService:ConfigService, private userService: UserService){}
 
 @Get('google')
 @UseGuards(GoogleAuthGuard)
@@ -22,10 +22,9 @@ async googleAuth(){
 async googleAuthCallBack(@Req() req, @Res() res:Response){
     
     const { access_token } = await this.authService.googleLogin(req.user);
-
     const frontendUrl = this.configService.get('FRONTEND_URL');
-
     res.redirect(`${frontendUrl}/auth/callback?token=${access_token}`);
+   
 }
 
 @Get('profile')
@@ -34,5 +33,7 @@ getprofile(@Req() req){
     return req.user;
 }
 
+
+/*localhost:3000/auth/42luanda/callback*/
 }
 
