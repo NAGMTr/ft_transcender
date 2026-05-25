@@ -5,21 +5,12 @@ import {
   type ReactNode,
 } from "react";
 
-interface UserProfile {
-  id: number;
-  username: string;
-  email: string;
-  avatar_url: string;
-  created_at: string;
-  is_online: boolean;
-}
 
 interface AuthContextType {
-  profile: UserProfile | null;
   token: string | null;
   loading: boolean;
   isAuthenticated: boolean;
-  login: (token: string, profile: UserProfile) => void;
+  login: (token: string) => void;
   logout: () => void;
 }
 
@@ -30,11 +21,7 @@ export function AuthProvider({
 }: {
   children: ReactNode;
 }) {
-  const [profile, setProfile] = useState<UserProfile | null>(() => {
-    const storedProfile = localStorage.getItem("profile");
 
-    return storedProfile ? JSON.parse(storedProfile) : null;
-  });
 
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("access_token")
@@ -42,16 +29,9 @@ export function AuthProvider({
 
   const [loading] = useState(false);
 
-  function login(newToken: string, userData: UserProfile) {
+  function login(newToken: string) {
     localStorage.setItem("access_token", newToken);
-
-    localStorage.setItem(
-      "profile",
-      JSON.stringify(userData)
-    );
-
     setToken(newToken);
-    setProfile(userData);
   }
 
   function logout() {
@@ -59,13 +39,11 @@ export function AuthProvider({
     localStorage.removeItem("profile");
 
     setToken(null);
-    setProfile(null);
   }
 
   return (
     <AuthContext.Provider
       value={{
-        profile,
         token,
         loading,
         login,
