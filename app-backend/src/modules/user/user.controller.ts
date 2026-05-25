@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Put, Body, Post, Req } from '@nestjs/common';
+import { Controller, Get, Param, Put, Body, Post, Req, Delete } from '@nestjs/common';
 import { UserService } from './user.service';
 
 @Controller('users')
@@ -27,5 +27,21 @@ export class UserController {
   @Get(':username/friends')
   getFriends(@Param('username') username: string){
     return this.userService.getFriends(username);
+  }
+
+  @Post(':username/friends/:friendUsername')
+  async addFriend(
+    @Param('username') username: string, 
+    @Param('friendUsername') friendUsername: string // Mudou de number para string
+  ) {
+    return this.userService.addFriend(username, friendUsername);
+  }
+
+  @Delete(':username/friends/:friendUsername')
+  async removeFriend(
+    @Param('username') username: string,
+    @Param('friendUsername') friendUsername: string
+  ) {
+    return this.userService.removeFriend(username, friendUsername);
   }
 }

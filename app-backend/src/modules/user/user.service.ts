@@ -107,4 +107,41 @@ export class UserService {
     }
     return user.friends;
   }
+
+  async addFriend(username: string, friendUsername: string): Promise<User> {
+    // 1. Encontra o utilizador atual (tu)
+    const user = await this.userRepository.findOne({ 
+      where: { username }, 
+      relations: ['friends'] 
+    });
+    
+    // 2. Encontra o amigo pelo USERNAME (e não pelo ID)
+    const friend = await this.userRepository.findOne({ where: { username: friendUsername } });
+
+    if (!user || !friend) throw new NotFoundException('Utilizador ou amigo não encontrado');
+    if (user.username === friend.username) throw new BadRequestException('Não podes adicionar-te a ti mesmo');
+
+    // Verifica se já são amigos
+    const alreadyFriend = user.friends.find(f => f.id === friend.id);
+    if (alreadyFriend) return user;
+
+    user.friends.push(friend);
+    return await this.userRepository.save(user);
+  }
+
+  async removeFriend(username: string, friendUsername: string): Promise<User> {
+    // 1. Encontra o utilizador com a relação 'friends' carregada
+    const user = await this.userRepository.findOne({ 
+      where: { username }, 
+      relations: ['friends'] 
+    });
+    
+    if (!user) throw new NotFoundException('Utilizador não encontrado');
+
+    // 2. Remove o amigo da lista (filtra o array de amigos)
+    user.friends = user.friends.filter(f => f.username !== friendUsername);
+
+    // 3. Guarda o utilizador atualizado (o TypeORM tratará de remover a linha na tabela de ligação)
+    return await this.userRepository.save(user);
+  }
 }
