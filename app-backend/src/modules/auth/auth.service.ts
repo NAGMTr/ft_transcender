@@ -63,7 +63,6 @@ export class AuthService{
             email: user.email,
             role: user.role,
         }
-        console.log(user.bettor);
         return {
             statusCode: 201,
             message: 'User created successfully.',
@@ -72,9 +71,6 @@ export class AuthService{
                 id: user.id,
                 email: user.email,
                 role: user.role,
-                nick: user.bettor.nick,
-                avatar: user.bettor.avatar,
-                isNickSetted: user.bettor.isNickSetted,
             }
         }
     }
