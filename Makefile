@@ -119,6 +119,18 @@ clean-all-except-postgres: down
 	@# Remove também imagens sem nome (<none>) que sobram de builds antigos
 	@docker image prune -f
 
-.PHONY: all help up down wait-db shell-db migrate seed db-init dev dev-status dev-stop clean fclean re clean-containers fclean-local clean-all-except-postgres clean-keep-pulls clean-volume-keep-image
+# Para parar e remover apenas os containers definidos no docker-compose
+stop-containers:
+	$(COMPOSE) down
+
+# Para reiniciar apenas o processo do backend (sem mexer na base de dados)
+restart-back:
+	@echo "Reiniciando o Backend..."
+	@if [ -f $(BACK_PID_FILE) ]; then kill $$(cat $(BACK_PID_FILE)) 2>/dev/null || true; rm -f $(BACK_PID_FILE); fi
+	@cd $(BACK_DIR) && { [ -d node_modules ] || npm install; }
+	@(cd $(BACK_DIR) && npm run start:dev > $(LOG_DIR)/backend.log 2>&1) & echo $$! > $(BACK_PID_FILE)
+	@echo "Backend reiniciado com sucesso. PID: $$(cat $(BACK_PID_FILE))"
+
+.PHONY: all help up down wait-db shell-db migrate seed db-init dev dev-status dev-stop clean fclean re clean-containers fclean-local clean-all-except-postgres clean-keep-pulls clean-volume-keep-image stop-containers restart-back
 
 clean-keep-pulls: clean-all-except-postgres

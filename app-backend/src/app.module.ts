@@ -3,6 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ExamRankModule } from './modules/examrankModule/examrank.module';
 import { UserModule } from './modules/user/user.module';
+// Importação do módulo de pedidos de amizade
+import { FriendRequestModule } from './modules/friend-request/friend-request.module'; 
 
 @Module({
   imports: [
@@ -22,11 +24,12 @@ import { UserModule } from './modules/user/user.module';
         database: config.get<string>('DB_NAME'),
         entities: [__dirname + '/modules/**/*.entity{.ts,.js}'],
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
-        synchronize: true,
+        synchronize: true, // Nota: Mantido como true para desenvolvimento rápido
       }),
     }),
     ExamRankModule,
     UserModule,
+    FriendRequestModule, // Registo do módulo de Friend Request no sistema
   ],
 })
 export class AppModule {}

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Put, Body, Post, Req, Delete } from '@nestjs/common';
+import { Controller, Get, Param, Put, Body, Post, Req, Delete, Patch } from '@nestjs/common';
 import { UserService } from './user.service';
 
 @Controller('users')
@@ -43,5 +43,11 @@ export class UserController {
     @Param('friendUsername') friendUsername: string
   ) {
     return this.userService.removeFriend(username, friendUsername);
+  }
+
+  // Temporario para testar o online e offline usando POST
+  @Patch(':username/status')
+  async setStatus(@Param('username') username: string, @Body() body: { is_online: boolean }) {
+    return this.userService.updateStatus(username, body.is_online);
   }
 }

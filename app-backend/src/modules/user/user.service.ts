@@ -144,4 +144,11 @@ export class UserService {
     // 3. Guarda o utilizador atualizado (o TypeORM tratará de remover a linha na tabela de ligação)
     return await this.userRepository.save(user);
   }
+
+  // Temporario para testar o online e offline usando POST
+  async updateStatus(username: string, is_online: boolean) {
+    const user = await this.findOne(username);
+    user.is_online = is_online;
+    return await this.userRepository.save(user);
+  }
 }

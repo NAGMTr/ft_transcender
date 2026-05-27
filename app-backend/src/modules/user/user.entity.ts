@@ -5,7 +5,9 @@ import {
   CreateDateColumn,
   ManyToMany,
   JoinTable,
+  OneToMany,
 } from 'typeorm';
+import { FriendRequest } from '../friend-request/friend-request.entity'; // Ajusta o caminho se necessário
 
 @Entity('users')
 export class User {
@@ -42,4 +44,11 @@ export class User {
     inverseJoinColumn: { name: 'friend_id', referencedColumnName: 'id' },
   })
   friends: User[];
+
+  // Relações de pedidos de amizade
+  @OneToMany(() => FriendRequest, (friendRequest) => friendRequest.sender)
+  sentRequests: FriendRequest[];
+
+  @OneToMany(() => FriendRequest, (friendRequest) => friendRequest.receiver)
+  receivedRequests: FriendRequest[];
 }
