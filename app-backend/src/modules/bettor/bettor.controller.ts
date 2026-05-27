@@ -22,8 +22,7 @@ export class BettorController {
   }
 
   @Get('@:nick')
-  async publicProfile(@Param('nick') nick: string){
+  async publicProfile(@Param('nick') nick: string) {
     return await this.bettorService.findByNick(nick);
   }
-
 }

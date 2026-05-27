@@ -6,7 +6,7 @@ import { ExamRankModule } from './modules/examrankModule/examrank.module';
 import { UserModule } from './modules/user/user.module';
 import { BettorModule } from './modules/bettor/bettor.module';
 
-Module({
+@Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
@@ -33,5 +33,5 @@ Module({
     UserModule,
     BettorModule,
   ],
-});
+})
 export class AppModule {}

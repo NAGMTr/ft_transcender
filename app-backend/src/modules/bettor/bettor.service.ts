@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UpdateBettorDto } from './dto/update-bettor.dto';
 import { User } from '../user/entities/user.entity';
 import { Bettor } from './entities/bettor.entity';
@@ -6,32 +11,35 @@ import { createAvatar } from '@dicebear/core';
 import { avataaarsNeutral } from '@dicebear/collection';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { publicBettorDto } from './dto/public-bettor-dto';
 
 @Injectable()
 export class BettorService {
   constructor(
     @InjectRepository(Bettor)
-    private readonly bettorRepository: Repository<Bettor>
-  ){}
+    private readonly bettorRepository: Repository<Bettor>,
+  ) {}
 
   async create(user: User): Promise<Bettor> {
-    if (!user){
+    if (!user) {
       throw new InternalServerErrorException('User id required');
     }
 
-    const avatar = createAvatar( avataaarsNeutral,{
+    const avatar = createAvatar(avataaarsNeutral, {
       seed: user.email,
-    } )
+    });
     const avatarUri = avatar.toDataUri();
 
     const emailPrefix = user.email.split('@')[0];
-    const cleanPrefix = emailPrefix.substring(0, 20).replace(/[^a-zA-O0-9_.]/g, '');
+    const cleanPrefix = emailPrefix
+      .substring(0, 20)
+      .replace(/[^a-zA-O0-9_.]/g, '');
     const temporaryNick = `${cleanPrefix}_${Math.floor(1000 + Math.random() * 9000)}`;
     const bettor: Bettor = this.bettorRepository.create({
       nick: temporaryNick,
       avatar: avatarUri,
       user: user,
-    })
+    });
     return await this.bettorRepository.save(bettor);
   }
 
@@ -39,12 +47,43 @@ export class BettorService {
     return `This action returns a #${id} bettor`;
   }
 
-  async update(id: number, updateBettorDto: UpdateBettorDto) {
-    return `This action updates a #${id} bettor`;
+  // async update(id: number, updateBettorDto: UpdateBettorDto) {
+  //   return `This action updates a #${id} bettor`;
+  // }
+
+  async findByNick(nick: string): Promise<publicBettorDto> {
+    const bettor = await this.bettorRepository.findOne({ where: { nick } });
+    if (!bettor) throw new NotFoundException('Bettor not found');
+    return {
+      id: bettor.id,
+      nick: bettor.nick,
+      bio: bettor.bio,
+      avatar: bettor.avatar,
+      createdAt: bettor.createdAt,
+    };
   }
 
-  async findByNick(nick: string){
-
+  async update(userId: string, updateBettorDto: UpdateBettorDto) {
+    const bettor = await this.bettorRepository.findOne({
+    where: {
+        user: {
+          id: userId,
+        },
+      },
+      relations: ['user'],
+    });
+    if (!bettor) throw new NotFoundException('Bettor not found');
+    if (updateBettorDto.nick && updateBettorDto.nick !== bettor.nick) {
+      const nickAlreadyExists = await this.bettorRepository.findOne({
+        where: {
+          nick: updateBettorDto.nick,
+        },
+      });
+      if (nickAlreadyExists)
+        throw new ConflictException('Nick already in use, chose another');
+      bettor.isNickSetted = true;
+    }
+    Object.assign(bettor, updateBettorDto);
+    return await this.bettorRepository.save(bettor);
   }
-
 }
