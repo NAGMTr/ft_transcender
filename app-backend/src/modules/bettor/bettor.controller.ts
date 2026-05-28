@@ -12,7 +12,7 @@ export class BettorController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async findMyProfile(@Req() req: any) {
-    return  await this.bettorService.findOne(req.user.id);
+    return await this.bettorService.findOne(req.user.id);
   }
 
   @Patch('me')

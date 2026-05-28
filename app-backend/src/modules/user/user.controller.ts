@@ -21,23 +21,26 @@ import { AdmUpdateUserDto } from './dto/admin-update-user.dto';
 
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
+  @UseGuards(RolesGuard)
   @Roles('admin')
   async create(@Body() createUserDto: AdmUpdateUserDto) {
     return await this.userService.create(createUserDto);
   }
 
   @Get()
+  @UseGuards(RolesGuard)
   @Roles('admin')
   async findAll() {
     return await this.userService.findAll();
   }
 
   @Get(':id')
+  @UseGuards(RolesGuard)
   @Roles('admin')
   async findOne(@Param('id') id: string) {
     return await this.userService.findOne(id);
@@ -49,6 +52,7 @@ export class UserController {
   }
 
   @Patch(':id')
+  @UseGuards(RolesGuard)
   @Roles('admin')
   admUpdate(@Param('id') id: string, @Body() dto: AdmUpdateUserDto) {
     return this.userService.update(id, dto);
@@ -59,7 +63,13 @@ export class UserController {
     return this.userService.remove(req.user.id);
   }
 
+  @Patch('me')
+  updateMe(@Req() req, @Body dto: ) {
+    return this.userService.remove(req.user.id);
+  }
+
   @Delete(':id')
+  @UseGuards(RolesGuard)
   @Roles('admin')
   admRemove(@Param('id') id: string) {
     return this.userService.remove(id);
