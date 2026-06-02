@@ -95,7 +95,6 @@ export class AuthService{
             this.bettorService.create(user);
         }
 
-
         const payload = {
             sub: user.id,
             email: user.email,
@@ -111,7 +110,6 @@ export class AuthService{
             }
         };
     }
-
 
     async _42SchoolLogin(code:string){
 
@@ -164,7 +162,7 @@ export class AuthService{
         return {name: profileData.login, email:profileData.email};
     }
 
-    async generateToken(email:string){
+    private async generateToken(email:string){
         let user = await this.userService.findOneByEmail(email);
 
         if (user === null){

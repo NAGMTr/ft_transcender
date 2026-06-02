@@ -8,7 +8,6 @@ import { CredentialsAuthDto } from './dto/credentials.auth.dto';
 
 @Controller('auth')
 export class AuthController {
-
     constructor(private authService: AuthService, private configService: ConfigService) { }
 
     private setAuthCookie(res: Response, accessToken: string) {
@@ -27,7 +26,6 @@ export class AuthController {
     @UseGuards(GoogleAuthGuard)
     async googleAuth() {
     }
-
 
     @Post('signin')
     async signin(@Body() signinDto: CredentialsAuthDto, @Res({ passthrough: true }) res: Response) {
@@ -49,13 +47,13 @@ export class AuthController {
 
     @Get('school')
     _42schoolAuth(@Res() res:Response){
-    const url=this.configService.getOrThrow('_42SCHOOL_API_URL_AUTHORIRIZE');
-    const params = new URLSearchParams({
-        client_id:this.configService.getOrThrow<string>('_42SCHOOL_CLIENT_ID'),
-        redirect_uri:this.configService.getOrThrow<string>('_42SCHOOL_CALLBACK_URL'),
-        scope: 'public',
-        response_type: 'code',
-        state: 'xyz'
+        const url=this.configService.getOrThrow('_42SCHOOL_API_URL_AUTHORIRIZE');
+        const params = new URLSearchParams({
+            client_id:this.configService.getOrThrow<string>('_42SCHOOL_CLIENT_ID'),
+            redirect_uri:this.configService.getOrThrow<string>('_42SCHOOL_CALLBACK_URL'),
+            scope: 'public',
+            response_type: 'code',
+            state: 'xyz'
     });
 
     res.redirect(302, `${url}?${params.toString()}`);
@@ -80,5 +78,4 @@ export class AuthController {
         const frontendUrl = this.configService.get('FRONTEND_URL');
         res.redirect(`${frontendUrl}/auth/callback`);
     }
-
 }
